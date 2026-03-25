@@ -32,6 +32,7 @@ services:
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - POLLING_FREQUENCY=15
       - FETCHER_ALLOW_PRIVATE_NETWORKS=1
+      - GOOGLE_READER=1
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/healthcheck"]
       interval: 30s
