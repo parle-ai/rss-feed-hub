@@ -1,3 +1,5 @@
+name: rss-feed-hub
+
 services:
   rsshub:
     image: diygod/rsshub:chromium-bundled
