@@ -1,4 +1,4 @@
-# 原理图解：RSS + RSSHub + Docker + Miniflux
+# 原理图解：RSS + RSSHub + Docker + Miniflux + NetNewsWire
 
 ## 一、什么是 RSS？
 
@@ -75,7 +75,33 @@ graph TB
 
 ---
 
-## 四、完整数据流
+## 四、客户端：NetNewsWire
+
+Miniflux 自带 Web UI（localhost:8080），但外观朴素。
+**NetNewsWire** 是一个开源的 macOS/iOS 原生 RSS 客户端，颜值更高。
+
+它不是替代 Miniflux，而是另一个**入口**：
+
+```mermaid
+graph TD
+    M[Miniflux<br/>后端 + 数据存储<br/>localhost:8080]
+    NNW[NetNewsWire<br/>macOS 原生客户端]
+    WEB[浏览器<br/>localhost:8080]
+
+    NNW -->|Google Reader API| M
+    WEB -->|Web UI| M
+    M --> DB[(PostgreSQL)]
+```
+
+**NetNewsWire 是纯客户端**，它不存数据、不抓 feed。所有数据存在 Miniflux + PostgreSQL 里。
+NetNewsWire 通过 Google Reader API 跟 Miniflux 对话（拉文章、同步已读状态、管理订阅）。
+
+类比：Miniflux 是**邮件服务器**（Gmail 后台），NetNewsWire 是**邮件客户端**（Outlook app）。
+你可以同时用多个客户端，数据自动同步。
+
+---
+
+## 五、完整数据流
 
 ```mermaid
 sequenceDiagram
@@ -83,7 +109,7 @@ sequenceDiagram
     participant R as RSSHub<br/>(localhost:1200)
     participant M as Miniflux<br/>(localhost:8080)
     participant DB as PostgreSQL
-    participant U as 你
+    participant U as 你（Web UI 或 NetNewsWire）
 
     loop 每 15 分钟
         M->>R: 有新内容吗？
@@ -93,15 +119,17 @@ sequenceDiagram
         M->>DB: 存储新文章
     end
 
-    U->>M: 打开 localhost:8080
+    U->>M: 打开 Miniflux（Web 或 NetNewsWire）
     M->>DB: 读取未读文章
     DB-->>M: 返回文章列表
-    M-->>U: 展示所有 UP 主更新
+    M-->>U: 展示所有更新
+    U->>M: 标记已读
+    M->>DB: 更新状态（所有客户端自动同步）
 ```
 
 ---
 
-## 五、一句话总结
+## 六、一句话总结
 
 | 组件 | 角色 | 类比 |
 |------|------|------|
@@ -111,3 +139,4 @@ sequenceDiagram
 | **Docker** | 让软件互不干扰地运行 | 集装箱：每个软件住自己的箱子 |
 | **Docker Compose** | 一键编排多个容器 | 集装箱调度表 |
 | **OrbStack** | macOS 上的 Docker 引擎 | 码头（让集装箱能跑起来） |
+| **NetNewsWire** | macOS/iOS 原生 RSS 客户端 | 邮件客户端（Outlook），连着邮件服务器（Miniflux）用 |
