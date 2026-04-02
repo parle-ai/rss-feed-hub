@@ -47,11 +47,17 @@ def filter_and_cluster(articles, must_read_feeds, model):
     try:
         response = client.messages.create(
             model=model,
-            max_tokens=4096,
+            max_tokens=8192,
             system=system,
             messages=[{"role": "user", "content": user}],
         )
-        return json.loads(response.content[0].text)
+        text = response.content[0].text.strip()
+        # Strip markdown code fences if present
+        if text.startswith("```"):
+            text = text.split("\n", 1)[1]
+            if text.endswith("```"):
+                text = text[:-3].strip()
+        return json.loads(text)
     except Exception as e:
         print(f"filter_and_cluster failed: {e}")
         return None

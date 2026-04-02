@@ -2,7 +2,8 @@ must_read_feeds:
   - "Andrej Karpathy blog"
 
 digest:
-  lookback_hours: 24
+  lookback_hours: 48
+  max_articles: 200
   history_days: 30
 
 claude:

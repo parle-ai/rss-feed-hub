@@ -38,6 +38,13 @@ def run_digest(output_path="/output/feed.xml"):
         print("No articles found, skipping digest generation.")
         return
 
+    print(f"Fetched {len(articles)} articles")
+
+    max_articles = config["digest"].get("max_articles", 200)
+    if len(articles) > max_articles:
+        articles = articles[:max_articles]
+        print(f"Trimmed to {len(articles)} most recent articles")
+
     cluster_result = filter_and_cluster(
         articles,
         config["must_read_feeds"],
