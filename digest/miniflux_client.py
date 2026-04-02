@@ -26,6 +26,7 @@ def fetch_entries(base_url, api_key, lookback_hours):
         resp = requests.get(
             f"{base_url}/v1/entries",
             headers=headers,
+            timeout=30,
             params={
                 "status": "unread",
                 "order": "published_at",

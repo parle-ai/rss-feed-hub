@@ -52,12 +52,14 @@ def filter_and_cluster(articles, must_read_feeds, model):
             messages=[{"role": "user", "content": user}],
         )
         return json.loads(response.content[0].text)
-    except Exception:
+    except Exception as e:
+        print(f"filter_and_cluster failed: {e}")
         return None
 
 
-def generate_summary(content, system_prompt, model):
-    client = anthropic.Anthropic()
+def generate_summary(content, system_prompt, model, client=None):
+    if client is None:
+        client = anthropic.Anthropic()
 
     try:
         response = client.messages.create(
@@ -67,7 +69,8 @@ def generate_summary(content, system_prompt, model):
             messages=[{"role": "user", "content": content}],
         )
         return response.content[0].text
-    except Exception:
+    except Exception as e:
+        print(f"generate_summary failed: {e}")
         return None
 
 
@@ -84,6 +87,7 @@ def _truncate(text, max_length):
 
 
 def generate_digest_summaries(articles, cluster_result, model, max_article_length, max_cluster_article_length):
+    client = anthropic.Anthropic()
     digest = {"hot_topics": [], "must_read": [], "notable": []}
 
     for topic in cluster_result.get("hot_topics", []):
@@ -105,6 +109,7 @@ def generate_digest_summaries(articles, cluster_result, model, max_article_lengt
             "\n\n".join(prompt_parts),
             TOPIC_SUMMARY_SYSTEM_PROMPT,
             model,
+            client=client,
         )
         if summary is None:
             first = _find_article(articles, topic["article_ids"][0])
@@ -124,7 +129,7 @@ def generate_digest_summaries(articles, cluster_result, model, max_article_lengt
             content = _truncate(article["content"], max_article_length)
             prompt = f"标题：{article['title']}\n来源：{article['feed']}\n正文：{content}"
 
-            summary = generate_summary(prompt, SINGLE_SUMMARY_SYSTEM_PROMPT, model)
+            summary = generate_summary(prompt, SINGLE_SUMMARY_SYSTEM_PROMPT, model, client=client)
             if summary is None:
                 summary = _truncate(article["content"], 200)
 

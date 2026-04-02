@@ -28,7 +28,11 @@ def run_digest(output_path="/output/feed.xml"):
     base_url = os.environ.get("MINIFLUX_URL", "http://miniflux:8080")
     api_key = os.environ.get("MINIFLUX_API_KEY", "")
 
-    articles = fetch_entries(base_url, api_key, config["digest"]["lookback_hours"])
+    try:
+        articles = fetch_entries(base_url, api_key, config["digest"]["lookback_hours"])
+    except Exception as e:
+        print(f"Failed to fetch entries: {e}")
+        return
 
     if not articles:
         print("No articles found, skipping digest generation.")
