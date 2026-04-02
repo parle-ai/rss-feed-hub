@@ -23,6 +23,7 @@ graph LR
     S --> RSSHub
     RSSHub -- RSS --> Miniflux
     Miniflux --> DB
+    Miniflux -- API --> Digest
     Digest -- feed.xml --> nginx
     nginx -- RSS --> Miniflux
     Miniflux -- Google Reader API --> NNW[NetNewsWire / Reeder]
