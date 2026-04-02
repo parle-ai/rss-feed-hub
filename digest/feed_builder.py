@@ -39,7 +39,7 @@ def build_digest_html(digest):
 
 
 def _make_pub_date(d):
-    dt = datetime(d.year, d.month, d.day, 8, 0, 0, tzinfo=timezone(timedelta(hours=8)))
+    dt = datetime(d.year, d.month, d.day, 8, 0, 0, tzinfo=timezone(timedelta(hours=-4)))
     return format_datetime(dt, usegmt=False)
 
 

@@ -12,13 +12,13 @@ def test_run_digest_creates_feed_xml(tmp_path):
     cluster_result = {
         "hot_topics": [],
         "must_read": [1],
-        "notable": [],
+        "notable": {},
         "filtered_out": [],
     }
     digest_result = {
         "hot_topics": [],
         "must_read": [{"title": "T1", "feed": "F1", "url": "https://example.com/1", "summary": "摘要。"}],
-        "notable": [],
+        "notable": {},
     }
 
     output_path = str(tmp_path / "feed.xml")

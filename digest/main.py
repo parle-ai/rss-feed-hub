@@ -74,7 +74,7 @@ def run_digest(output_path="/output/feed.xml"):
 
     topic_count = len(digest["hot_topics"])
     must_read_count = len(digest["must_read"])
-    notable_count = len(digest["notable"])
+    notable_count = sum(len(v) for v in digest["notable"].values())
     print(f"Digest generated: {topic_count} topics, {must_read_count} must-read, {notable_count} notable")
 
 
