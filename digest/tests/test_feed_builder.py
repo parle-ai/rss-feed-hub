@@ -18,9 +18,9 @@ def test_build_digest_html_has_all_sections():
         "must_read": [
             {"title": "microgpt", "feed": "Andrej Karpathy blog", "url": "https://karpathy.github.io/1", "summary": "200 行实现 GPT。"},
         ],
-        "notable": [
-            {"title": "SQLite news", "feed": "HN", "url": "https://hn.com/1", "summary": "SQLite 更新。"},
-        ],
+        "notable": {
+            "科技": [{"title": "SQLite news", "feed": "HN", "url": "https://hn.com/1", "summary": "SQLite 更新。"}],
+        },
     }
     html = build_digest_html(digest)
     assert "热点话题" in html
@@ -31,6 +31,7 @@ def test_build_digest_html_has_all_sections():
     assert "必读" in html
     assert "microgpt" in html
     assert "值得关注" in html
+    assert "科技" in html
     assert "SQLite news" in html
 
 
@@ -40,7 +41,7 @@ def test_build_feed_xml_valid_rss():
         "must_read": [
             {"title": "Test", "feed": "F", "url": "https://example.com", "summary": "Summary."},
         ],
-        "notable": [],
+        "notable": {},
     }
     xml_str = build_feed_xml(digest, today=date(2026, 4, 1), existing_items=[])
     root = ET.fromstring(xml_str)
@@ -54,7 +55,7 @@ def test_build_feed_xml_valid_rss():
 
 
 def test_build_feed_xml_preserves_history():
-    digest = {"hot_topics": [], "must_read": [], "notable": []}
+    digest = {"hot_topics": [], "must_read": [], "notable": {}}
     old_item = '<item><title>每日速览 — 2026-03-31</title><guid>digest-2026-03-31</guid><pubDate>Mon, 31 Mar 2026 08:00:00 +0800</pubDate><description>old</description></item>'
     xml_str = build_feed_xml(digest, today=date(2026, 4, 1), existing_items=[old_item])
     root = ET.fromstring(xml_str)

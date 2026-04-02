@@ -66,7 +66,7 @@ def test_generate_digest_summaries_for_topics():
     cluster_result = {
         "hot_topics": [{"title": "OpenAI 发布 GPT-5", "article_ids": [1, 3], "reason": "多家报道"}],
         "must_read": [2],
-        "notable": [],
+        "notable": {"科技": [3]},
         "filtered_out": [],
     }
 
@@ -82,13 +82,15 @@ def test_generate_digest_summaries_for_topics():
     assert result["hot_topics"][0]["articles"][0]["feed"] == "Ars Technica"
     assert len(result["must_read"]) == 1
     assert result["must_read"][0]["summary"] == "这是AI生成的中文摘要。"
+    assert "科技" in result["notable"]
+    assert result["notable"]["科技"][0]["summary"] == "这是AI生成的中文摘要。"
 
 
 def test_generate_digest_summaries_fallback_on_error():
     articles = [
         {"id": 1, "title": "T", "feed": "F", "url": "https://example.com", "content": "Fallback content here for testing purposes.", "excerpt": ""},
     ]
-    cluster_result = {"hot_topics": [], "must_read": [1], "notable": [], "filtered_out": []}
+    cluster_result = {"hot_topics": [], "must_read": [1], "notable": {}, "filtered_out": []}
 
     with patch("summarize.anthropic") as mock_anthropic:
         mock_client = Mock()

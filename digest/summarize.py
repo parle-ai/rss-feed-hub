@@ -5,8 +5,8 @@ FILTER_SYSTEM_PROMPT = """你是一个新闻编辑助手。你的任务是分析
 
 1. **热点话题识别**：找出被多个来源报道的同一事件/话题，将它们合并为一个话题。按报道数量和重要性排序。
 2. **必读标记**：来自以下 feed 的文章必须单独展示（即使它属于某个热点话题，也要同时在必读区出现）：{must_read_feeds}
-3. **值得关注**：不属于热点、不属于必读，但仍有阅读价值的文章。
-4. **过滤**：纯噪音、重复性极高的低价值内容不要包含。
+3. **值得关注（按领域分类）**：不属于热点、不属于必读，但仍有阅读价值的文章。按领域自由分类（如 AI/ML、编程、科技产品、财经、政治、开源、安全、创业、科学、文化等），分类名用中文，数量和名称由你自由判断，不要硬凑。
+4. **过滤**：纯噪音、重复性极高、低价值内容不要包含。大胆过滤，只保留真正值得读的。
 
 输出严格 JSON 格式：
 {{
@@ -18,7 +18,10 @@ FILTER_SYSTEM_PROMPT = """你是一个新闻编辑助手。你的任务是分析
     }}
   ],
   "must_read": [5, 12],
-  "notable": [2, 8, 15],
+  "notable": {{
+    "分类名": [2, 8],
+    "另一个分类": [15]
+  }},
   "filtered_out": [4, 6, 9]
 }}"""
 
@@ -94,7 +97,7 @@ def _truncate(text, max_length):
 
 def generate_digest_summaries(articles, cluster_result, model, max_article_length, max_cluster_article_length):
     client = anthropic.Anthropic()
-    digest = {"hot_topics": [], "must_read": [], "notable": []}
+    digest = {"hot_topics": [], "must_read": [], "notable": {}}
 
     for topic in cluster_result.get("hot_topics", []):
         topic_articles = []
@@ -127,8 +130,34 @@ def generate_digest_summaries(articles, cluster_result, model, max_article_lengt
             "articles": topic_articles,
         })
 
-    for category in ("must_read", "notable"):
-        for aid in cluster_result.get(category, []):
+    # must_read
+    for aid in cluster_result.get("must_read", []):
+        article = _find_article(articles, aid)
+        if not article:
+            continue
+        content = _truncate(article["content"], max_article_length)
+        prompt = f"标题：{article['title']}\n来源：{article['feed']}\n正文：{content}"
+
+        summary = generate_summary(prompt, SINGLE_SUMMARY_SYSTEM_PROMPT, model, client=client)
+        if summary is None:
+            summary = _truncate(article["content"], 200)
+
+        digest["must_read"].append({
+            "title": article["title"],
+            "feed": article["feed"],
+            "url": article["url"],
+            "summary": summary,
+        })
+
+    # notable — now grouped by category
+    notable_raw = cluster_result.get("notable", {})
+    if isinstance(notable_raw, list):
+        # backwards compat: old format was a flat list
+        notable_raw = {"其他": notable_raw}
+
+    for category_name, aids in notable_raw.items():
+        category_articles = []
+        for aid in aids:
             article = _find_article(articles, aid)
             if not article:
                 continue
@@ -139,11 +168,13 @@ def generate_digest_summaries(articles, cluster_result, model, max_article_lengt
             if summary is None:
                 summary = _truncate(article["content"], 200)
 
-            digest[category].append({
+            category_articles.append({
                 "title": article["title"],
                 "feed": article["feed"],
                 "url": article["url"],
                 "summary": summary,
             })
+        if category_articles:
+            digest["notable"][category_name] = category_articles
 
     return digest

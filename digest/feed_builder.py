@@ -29,9 +29,11 @@ def build_digest_html(digest):
 
     if digest["notable"]:
         parts.append("<h2>值得关注</h2>")
-        for a in digest["notable"]:
-            parts.append(f'<h3><a href="{a["url"]}">{a["title"]}</a></h3>')
-            parts.append(f"<p>{a['summary']}</p>")
+        for category_name, category_articles in digest["notable"].items():
+            parts.append(f"<h3>{category_name}</h3>")
+            for a in category_articles:
+                parts.append(f'<h4><a href="{a["url"]}">{a["title"]}</a></h4>')
+                parts.append(f"<p>{a['summary']}</p>")
 
     return "\n".join(parts)
 
