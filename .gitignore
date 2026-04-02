@@ -2,4 +2,5 @@
 .superpowers/
 data/
 *.DS_Store
+__pycache__/
 .worktrees/
