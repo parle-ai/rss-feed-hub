@@ -2,3 +2,4 @@
 .superpowers/
 data/
 *.DS_Store
+.worktrees/
