@@ -1,0 +1,1 @@
+0 8 * * * cd /app && python main.py >> /var/log/digest.log 2>&1

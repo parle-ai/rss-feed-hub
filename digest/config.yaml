@@ -1,0 +1,11 @@
+must_read_feeds:
+  - "Andrej Karpathy blog"
+
+digest:
+  lookback_hours: 24
+  history_days: 30
+
+claude:
+  model: "claude-haiku-4-5-20251001"
+  max_article_length: 2000
+  max_cluster_article_length: 500
