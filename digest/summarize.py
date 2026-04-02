@@ -69,3 +69,70 @@ def generate_summary(content, system_prompt, model):
         return response.content[0].text
     except Exception:
         return None
+
+
+def _find_article(articles, article_id):
+    for a in articles:
+        if a["id"] == article_id:
+            return a
+    return None
+
+
+def _truncate(text, max_length):
+    text = text or ""
+    return text[:max_length] if len(text) > max_length else text
+
+
+def generate_digest_summaries(articles, cluster_result, model, max_article_length, max_cluster_article_length):
+    digest = {"hot_topics": [], "must_read": [], "notable": []}
+
+    for topic in cluster_result.get("hot_topics", []):
+        topic_articles = []
+        prompt_parts = [f"话题：{topic['title']}\n"]
+        for i, aid in enumerate(topic["article_ids"], 1):
+            article = _find_article(articles, aid)
+            if not article:
+                continue
+            content = _truncate(article["content"], max_cluster_article_length)
+            prompt_parts.append(f"报道 {i}（{article['feed']}）：{content}")
+            topic_articles.append({
+                "title": article["title"],
+                "feed": article["feed"],
+                "url": article["url"],
+            })
+
+        summary = generate_summary(
+            "\n\n".join(prompt_parts),
+            TOPIC_SUMMARY_SYSTEM_PROMPT,
+            model,
+        )
+        if summary is None:
+            first = _find_article(articles, topic["article_ids"][0])
+            summary = _truncate(first["content"], 200) if first else ""
+
+        digest["hot_topics"].append({
+            "title": topic["title"],
+            "summary": summary,
+            "articles": topic_articles,
+        })
+
+    for category in ("must_read", "notable"):
+        for aid in cluster_result.get(category, []):
+            article = _find_article(articles, aid)
+            if not article:
+                continue
+            content = _truncate(article["content"], max_article_length)
+            prompt = f"标题：{article['title']}\n来源：{article['feed']}\n正文：{content}"
+
+            summary = generate_summary(prompt, SINGLE_SUMMARY_SYSTEM_PROMPT, model)
+            if summary is None:
+                summary = _truncate(article["content"], 200)
+
+            digest[category].append({
+                "title": article["title"],
+                "feed": article["feed"],
+                "url": article["url"],
+                "summary": summary,
+            })
+
+    return digest

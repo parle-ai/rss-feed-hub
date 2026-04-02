@@ -53,3 +53,48 @@ def test_filter_and_cluster_handles_api_error():
         result = filter_and_cluster(articles, [], model="claude-haiku-4-5-20251001")
 
     assert result is None
+
+
+from summarize import generate_digest_summaries
+
+def test_generate_digest_summaries_for_topics():
+    articles = [
+        {"id": 1, "title": "GPT-5 released", "feed": "Ars Technica", "url": "https://ars.com/1", "content": "OpenAI has released GPT-5 with major improvements.", "excerpt": ""},
+        {"id": 3, "title": "GPT-5 analysis", "feed": "Bloomberg", "url": "https://bloom.com/1", "content": "Bloomberg analysis of GPT-5 launch.", "excerpt": ""},
+        {"id": 2, "title": "Karpathy post", "feed": "Andrej Karpathy blog", "url": "https://karpathy.github.io/1", "content": "New post about microgpt implementation.", "excerpt": ""},
+    ]
+    cluster_result = {
+        "hot_topics": [{"title": "OpenAI 发布 GPT-5", "article_ids": [1, 3], "reason": "多家报道"}],
+        "must_read": [2],
+        "notable": [],
+        "filtered_out": [],
+    }
+
+    with patch("summarize.anthropic") as mock_anthropic:
+        mock_client = Mock()
+        mock_anthropic.Anthropic.return_value = mock_client
+        mock_client.messages.create.return_value = _mock_claude_response("这是AI生成的中文摘要。")
+
+        result = generate_digest_summaries(articles, cluster_result, model="claude-haiku-4-5-20251001", max_article_length=2000, max_cluster_article_length=500)
+
+    assert len(result["hot_topics"]) == 1
+    assert result["hot_topics"][0]["summary"] == "这是AI生成的中文摘要。"
+    assert result["hot_topics"][0]["articles"][0]["feed"] == "Ars Technica"
+    assert len(result["must_read"]) == 1
+    assert result["must_read"][0]["summary"] == "这是AI生成的中文摘要。"
+
+
+def test_generate_digest_summaries_fallback_on_error():
+    articles = [
+        {"id": 1, "title": "T", "feed": "F", "url": "https://example.com", "content": "Fallback content here for testing purposes.", "excerpt": ""},
+    ]
+    cluster_result = {"hot_topics": [], "must_read": [1], "notable": [], "filtered_out": []}
+
+    with patch("summarize.anthropic") as mock_anthropic:
+        mock_client = Mock()
+        mock_anthropic.Anthropic.return_value = mock_client
+        mock_client.messages.create.side_effect = Exception("API down")
+
+        result = generate_digest_summaries(articles, cluster_result, model="claude-haiku-4-5-20251001", max_article_length=2000, max_cluster_article_length=500)
+
+    assert result["must_read"][0]["summary"] == "Fallback content here for testing purposes."
