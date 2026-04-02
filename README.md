@@ -23,6 +23,8 @@ A self-hosted information aggregator. No algorithms, no ads, no tracking — jus
 | [Miniflux](https://github.com/miniflux/v2) | Minimal, fast RSS reader with a full REST API | 8080 |
 | PostgreSQL | Stores feeds, articles, and read state | 5432 (internal) |
 | [NetNewsWire](https://github.com/Ranchero-Software/NetNewsWire) | macOS/iOS native client (connects via Google Reader API) | — |
+| Digest Worker | AI-powered daily digest — filters, clusters, summarizes articles | cron (internal) |
+| nginx | Serves digest RSS feed | 8888 |
 
 ## Quick Start
 
@@ -41,6 +43,16 @@ open http://localhost:8080
 | **YouTube** | 52 channels (native RSS) |
 | **News** | Hacker News, Ars Technica, MIT News, OpenAI, Bloomberg, WSJ, CNBC, etc. |
 | **Karpathy HN Top Blogs** | 91 most popular blogs from Hacker News 2025 |
+
+## Daily Digest
+
+AI-powered daily summary of your feeds — hot topics, must-reads, and notable articles, all in Chinese.
+
+**Subscribe in NetNewsWire:** `http://localhost:8888/feed.xml`
+
+Runs daily at 08:00. Configure must-read feeds in `digest/config.yaml`.
+
+Requires: `ANTHROPIC_API_KEY` and `MINIFLUX_API_KEY` in `.env`.
 
 ## Native Client Support
 
