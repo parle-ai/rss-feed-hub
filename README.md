@@ -6,23 +6,26 @@ A self-hosted information aggregator. No algorithms, no ads, no tracking — jus
 
 ## Architecture
 
-```
-┌──────────────┐     RSS      ┌──────────────┐     ┌──────────────┐
-│    RSSHub    │─────────────▶│   Miniflux   │────▶│  PostgreSQL  │
-│  万物皆可RSS  │              │  阅读 + API   │     │   数据持久化  │
-└──────────────┘              └──────┬───────┘     └──────────────┘
-       ▲                            │
-  B站 / YouTube                     ▼
-  HN / Reddit              NetNewsWire / Reeder
-  News / Blogs              (or any RSS client)
-                                    ▲
-┌──────────────┐    RSS     ┌───────┴──────┐
-│ Digest Worker│───────────▶│    nginx     │
-│ AI 每日速览   │            │  port: 8888  │
-└──────────────┘            └──────────────┘
-       │
-       ▼
-   Claude API
+```mermaid
+graph LR
+    subgraph Sources
+        S[B站 / YouTube\nHN / Reddit\nNews / Blogs]
+    end
+
+    subgraph Docker
+        RSSHub[RSSHub\n万物皆可RSS\n:1200]
+        Miniflux[Miniflux\n阅读 + API\n:8080]
+        DB[(PostgreSQL\n数据持久化)]
+        Digest[Digest Worker\nClaude API]
+        nginx[nginx\n:8888]
+    end
+
+    S --> RSSHub
+    RSSHub -- RSS --> Miniflux
+    Miniflux --> DB
+    Digest -- feed.xml --> nginx
+    nginx -- RSS --> Miniflux
+    Miniflux -- Google Reader API --> NNW[NetNewsWire / Reeder]
 ```
 
 | Component | Role | Port |
