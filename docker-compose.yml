@@ -57,5 +57,27 @@ services:
       retries: 3
     restart: unless-stopped
 
+  digest-worker:
+    build: ./digest
+    volumes:
+      - digest-output:/output
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - MINIFLUX_URL=http://miniflux:8080
+      - MINIFLUX_API_KEY=${MINIFLUX_API_KEY}
+    depends_on:
+      miniflux:
+        condition: service_healthy
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8888:80"
+    volumes:
+      - digest-output:/usr/share/nginx/html:ro
+    restart: unless-stopped
+
 volumes:
   miniflux-db:
+  digest-output:
