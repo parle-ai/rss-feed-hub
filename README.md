@@ -10,11 +10,19 @@ A self-hosted information aggregator. No algorithms, no ads, no tracking — jus
 ┌──────────────┐     RSS      ┌──────────────┐     ┌──────────────┐
 │    RSSHub    │─────────────▶│   Miniflux   │────▶│  PostgreSQL  │
 │  万物皆可RSS  │              │  阅读 + API   │     │   数据持久化  │
-└──────────────┘              └──────────────┘     └──────────────┘
-       ▲                             │
-  B站 / YouTube                      ▼
-  HN / Reddit               NetNewsWire / Reeder
-  News / Blogs               (or any RSS client)
+└──────────────┘              └──────┬───────┘     └──────────────┘
+       ▲                            │
+  B站 / YouTube                     ▼
+  HN / Reddit              NetNewsWire / Reeder
+  News / Blogs              (or any RSS client)
+                                    ▲
+┌──────────────┐    RSS     ┌───────┴──────┐
+│ Digest Worker│───────────▶│    nginx     │
+│ AI 每日速览   │            │  port: 8888  │
+└──────────────┘            └──────────────┘
+       │
+       ▼
+   Claude API
 ```
 
 | Component | Role | Port |
@@ -48,11 +56,9 @@ open http://localhost:8080
 
 AI-powered daily summary of your feeds — hot topics, must-reads, and notable articles, all in Chinese.
 
-**Subscribe in NetNewsWire:** `http://localhost:8888/feed.xml`
+Digest feed is already subscribed in Miniflux and syncs to NetNewsWire automatically via Google Reader API. The digest worker generates `feed.xml` daily at 08:00, served by nginx at `http://nginx/feed.xml` (Docker internal) / `http://localhost:8888/feed.xml` (host).
 
-Runs daily at 08:00. Configure must-read feeds in `digest/config.yaml`.
-
-Requires: `ANTHROPIC_API_KEY` and `MINIFLUX_API_KEY` in `.env`.
+Configure must-read feeds in `digest/config.yaml`. Requires `ANTHROPIC_API_KEY` and `MINIFLUX_API_KEY` in `.env`.
 
 ## Native Client Support
 
@@ -66,7 +72,7 @@ Also works with: Reeder, lire, News Explorer, FeedMe, and [more](https://miniflu
 
 ## Roadmap
 
-- [ ] AI-powered article summarization (local LLM via Ollama)
+- [x] AI-powered daily digest (Claude API — filters, clusters, summarizes)
 - [ ] Custom frontend dashboard (Miniflux REST API)
 - [ ] Xiaohongshu integration (custom scraper)
 - [ ] Mobile push notifications
@@ -75,6 +81,7 @@ Also works with: Reeder, lire, News Explorer, FeedMe, and [more](https://miniflu
 
 - [How It Works](docs/how-it-works.md) — Visual guide to RSS, RSSHub, Docker, Miniflux, NetNewsWire
 - [Design Spec](docs/superpowers/specs/2026-03-25-info-aggregator-design.md)
+- [Daily Digest Design](docs/superpowers/specs/2026-04-01-daily-digest-design.md)
 - [Implementation Plan](docs/superpowers/plans/2026-03-25-info-aggregator.md)
 
 ## License
