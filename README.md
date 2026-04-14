@@ -2,7 +2,7 @@
 
 > **Open, hackable, yours.**
 
-A self-hosted information aggregator. No algorithms, no ads, no tracking — just your subscriptions, in chronological order, on your own machine.
+A self-hosted information aggregator with an **AI-powered daily digest (每日速览)** — your subscriptions filtered, clustered, and summarized by Claude every morning. No algorithms, no ads, no tracking, all on your own machine.
 
 ![RSS Feed Hub in Reeder, showing the AI-generated daily digest](assets/reeder-digest-screenshot.png)
 
