@@ -4,6 +4,8 @@
 
 A self-hosted information aggregator. No algorithms, no ads, no tracking — just your subscriptions, in chronological order, on your own machine.
 
+![RSS Feed Hub in Reeder, showing the AI-generated daily digest](assets/reeder-digest-screenshot.png)
+
 ## Architecture
 
 ```mermaid
